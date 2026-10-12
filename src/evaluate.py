@@ -32,12 +32,22 @@ def predict_logits(model, X, batch_size=64):
     next(model.parameters()).device, and bring the answers back with .cpu().
     Work in batches so that a large test set does not run you out of memory.
     """
-    raise NotImplementedError("Problem 3: fill in predict_logits")
+    model.eval()
+    device = next(model.parameters()).device
+    outputs = []
+    with torch.no_grad():
+        for start in range(0, len(X), batch_size):
+            batch = torch.from_numpy(np.asarray(X[start:start + batch_size])).to(device)
+            outputs.append(model(batch).cpu().numpy())
+    if not outputs:
+        return np.zeros((0, 0), dtype=np.float32)
+    return np.concatenate(outputs).astype(np.float32)
 
 
 def accuracy(model, X, y):
     """Return the share of rows the model gets right, as a float 0.0 to 1.0."""
-    raise NotImplementedError("Problem 3: fill in accuracy")
+    predicted = predict_logits(model, X).argmax(axis=1)
+    return float((predicted == np.asarray(y)).mean())
 
 
 def confusion_matrix(model, X, y, num_classes):
@@ -47,7 +57,11 @@ def confusion_matrix(model, X, y, num_classes):
     how many images of class i the model called class j. The diagonal is the
     ones it got right.
     """
-    raise NotImplementedError("Problem 3: fill in confusion_matrix")
+    predicted = predict_logits(model, X).argmax(axis=1)
+    matrix = np.zeros((num_classes, num_classes), dtype=np.int64)
+    for true, guess in zip(np.asarray(y), predicted):
+        matrix[true, guess] += 1
+    return matrix
 
 
 def worst_examples(model, X, y, paths, k=10):
@@ -66,7 +80,24 @@ def worst_examples(model, X, y, paths, k=10):
     These are the images to put in your report. A mistake the model was sure
     about tells you much more than a mistake it was unsure about.
     """
-    raise NotImplementedError("Problem 5: fill in worst_examples")
+    logits = predict_logits(model, X)
+    # Softmax turns raw outputs into probabilities that add up to 1 per row.
+    shifted = logits - logits.max(axis=1, keepdims=True)
+    probs = np.exp(shifted) / np.exp(shifted).sum(axis=1, keepdims=True)
+    predicted = probs.argmax(axis=1)
+    y = np.asarray(y)
+
+    mistakes = []
+    for i in np.flatnonzero(predicted != y):
+        mistakes.append({
+            "path": Path(paths[i]),
+            "true": int(y[i]),
+            "predicted": int(predicted[i]),
+            "confidence": float(probs[i, predicted[i]]),
+        })
+    # Most confident mistake first.
+    mistakes.sort(key=lambda m: m["confidence"], reverse=True)
+    return mistakes[:k]
 
 
 # ---------------------------------------------------------------------------

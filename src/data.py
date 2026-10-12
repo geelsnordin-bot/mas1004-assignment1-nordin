@@ -50,7 +50,32 @@ def prepare_image(image):
     The web page does these same six steps in JavaScript. If your version is
     different, the self test badge at the top of your page turns red.
     """
-    raise NotImplementedError("Problem 2: fill in prepare_image")
+    from PIL import Image
+
+    # 1. Every picture becomes plain red-green-blue.
+    image = image.convert("RGB")
+
+    # 2. Shorter side to RESIZE, longer side scaled by the same factor.
+    width, height = image.size
+    if width <= height:
+        new_width, new_height = RESIZE, int(RESIZE * height / width)
+    else:
+        new_width, new_height = int(RESIZE * width / height), RESIZE
+    image = image.resize((new_width, new_height), Image.BILINEAR)
+
+    # 3. Cut the CROP x CROP square out of the middle.
+    left = int(round((new_width - CROP) / 2))
+    top = int(round((new_height - CROP) / 2))
+    image = image.crop((left, top, left + CROP, top + CROP))
+
+    # 4. Pixels 0..255 become numbers 0.0..1.0, shape (224, 224, 3).
+    x = np.asarray(image, dtype=np.float32) / 255.0
+
+    # 5. Per channel: subtract the mean, divide by the standard deviation.
+    x = (x - np.array(MEAN, dtype=np.float32)) / np.array(STD, dtype=np.float32)
+
+    # 6. Channels first: (3, 224, 224).
+    return np.ascontiguousarray(x.transpose(2, 0, 1), dtype=np.float32)
 
 
 def load_folder(root):
@@ -83,7 +108,32 @@ def load_folder(root):
     Memory: every image becomes 3 x 224 x 224 numbers of 4 bytes, about 0.6 MB.
     750 images is about 450 MB. That fits on Colab and on most laptops.
     """
-    raise NotImplementedError("Problem 2: fill in load_folder")
+    from pathlib import Path
+
+    from PIL import Image
+
+    root = Path(root)
+    # Sub-folders in alphabetical order; folder number i is class i.
+    class_names = sorted(d.name for d in root.iterdir() if d.is_dir())
+
+    rows, labels, paths = [], [], []
+    for label, name in enumerate(class_names):
+        # Sorted, so every run reads the files in the same order.
+        for path in sorted((root / name).iterdir()):
+            if path.suffix.lower() not in IMAGE_SUFFIXES:
+                continue                      # not an image, e.g. notes.txt
+            try:
+                with Image.open(path) as image:
+                    row = prepare_image(image)
+            except Exception:
+                continue                      # broken file, skip it
+            rows.append(row)
+            labels.append(label)
+            paths.append(path)
+
+    X = np.stack(rows).astype(np.float32) if rows else np.zeros((0, 3, CROP, CROP), np.float32)
+    y = np.array(labels, dtype=np.int64)
+    return X, y, class_names, paths
 
 
 def split_train_test(X, y, paths, test_ratio=0.2, seed=0):
@@ -102,4 +152,21 @@ def split_train_test(X, y, paths, test_ratio=0.2, seed=0):
         up with a class that has no test images at all, and then your accuracy
         number means nothing.
     """
-    raise NotImplementedError("Problem 2: fill in split_train_test")
+    rng = np.random.default_rng(seed)
+    test_rows = []
+    # Split each class on its own, so every class lands on both sides.
+    for label in np.unique(y):
+        rows = np.flatnonzero(y == label)
+        rng.shuffle(rows)
+        n_test = int(round(len(rows) * test_ratio))
+        n_test = min(max(n_test, 1), len(rows) - 1)   # at least one on each side
+        test_rows.extend(rows[:n_test])
+
+    # Every row goes to exactly one side: test if chosen, train otherwise.
+    is_test = np.zeros(len(y), dtype=bool)
+    is_test[test_rows] = True
+    train = np.flatnonzero(~is_test)
+    test = np.flatnonzero(is_test)
+
+    return (X[train], y[train], [paths[i] for i in train],
+            X[test], y[test], [paths[i] for i in test])

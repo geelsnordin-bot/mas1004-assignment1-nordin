@@ -35,7 +35,20 @@ def build_model(num_classes, pretrained=True, freeze=False):
     Do not put a softmax at the end. The loss function adds it for you, and the
     web page adds it for you.
     """
-    raise NotImplementedError("Problem 3: fill in build_model")
+    from torchvision.models import ResNet18_Weights, resnet18
+
+    weights = ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
+    model = resnet18(weights=weights)
+
+    if freeze:
+        # Keep everything ImageNet taught it; nothing here may change.
+        for parameter in model.parameters():
+            parameter.requires_grad = False
+
+    # The new last layer: 512 features in, one output per category.
+    # Created after freezing, so it is always trainable.
+    model.fc = nn.Linear(512, num_classes)
+    return model
 
 
 def train(model, X_train, y_train, X_test, y_test,
@@ -78,7 +91,63 @@ def train(model, X_train, y_train, X_test, y_test,
     The model is trained in place. When this function returns, `model` is the
     trained one, and it is left on the device it was trained on.
     """
-    raise NotImplementedError("Problem 3: fill in train")
+    import numpy as np
+
+    # A GPU if there is one: CUDA, or the Apple Silicon GPU (MPS), else CPU.
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+    elif torch.backends.mps.is_available():
+        device = torch.device("mps")
+    else:
+        device = torch.device("cpu")
+    model.to(device)
+
+    loss_fn = nn.CrossEntropyLoss()
+    optimiser = torch.optim.Adam(
+        [p for p in model.parameters() if p.requires_grad], lr=lr)
+
+    def batches(X, y, order):
+        for start in range(0, len(order), batch_size):
+            rows = order[start:start + batch_size]
+            yield (torch.from_numpy(X[rows]).to(device),
+                   torch.from_numpy(y[rows]).to(device))
+
+    history = {"train_loss": [], "train_acc": [], "test_loss": [], "test_acc": []}
+    for epoch in range(1, epochs + 1):
+        # Training: a new random order every epoch.
+        model.train()
+        order = np.random.permutation(len(y_train))
+        losses, right = [], 0
+        for xb, yb in batches(X_train, y_train, order):
+            optimiser.zero_grad()
+            out = model(xb)
+            loss = loss_fn(out, yb)
+            loss.backward()
+            optimiser.step()
+            losses.append(loss.item())
+            right += (out.argmax(1) == yb).sum().item()
+        train_loss = float(np.mean(losses))
+        train_acc = right / len(y_train)
+
+        # Measuring: eval mode, no gradients, nothing learned from the test rows.
+        model.eval()
+        total_loss, right = 0.0, 0
+        with torch.no_grad():
+            for xb, yb in batches(X_test, y_test, np.arange(len(y_test))):
+                out = model(xb)
+                total_loss += loss_fn(out, yb).item() * len(yb)
+                right += (out.argmax(1) == yb).sum().item()
+        test_loss = total_loss / len(y_test)
+        test_acc = right / len(y_test)
+
+        history["train_loss"].append(train_loss)
+        history["train_acc"].append(train_acc)
+        history["test_loss"].append(test_loss)
+        history["test_acc"].append(test_acc)
+        print(f"epoch {epoch:2d}/{epochs}  train loss {train_loss:.3f} acc {train_acc:.3f}"
+              f"  |  test loss {test_loss:.3f} acc {test_acc:.3f}", flush=True)
+
+    return history
 
 
 def count_trainable(model):
