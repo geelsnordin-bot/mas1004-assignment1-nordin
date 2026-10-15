@@ -1,0 +1,24 @@
+describing 621 images with ResNet18 ...
+  32/621
+  64/621
+  96/621
+  128/621
+  160/621
+  192/621
+  224/621
+  256/621
+  288/621
+  320/621
+  352/621
+  384/621
+  416/621
+  448/621
+  480/621
+  512/621
+  544/621
+  576/621
+  608/621
+  621/621
+none of your 21 new images is a near copy of any of the 600 images you downloaded
+
+the closest any new image comes to a downloaded one: 0.87 (near copies are above 0.95)

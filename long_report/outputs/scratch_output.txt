@@ -1,0 +1,31 @@
+reading /Users/nordin/Documents/mas1004-assignment1-nordin/data/clean
+600 images, 4 classes, read in 7 s
+  professional_basketball_game_arena 150
+  professional_ice_hockey_game_arena 150
+  professional_rugby_match_stadium 150
+  professional_soccer_match_stadium 150
+training on 480, testing on 120
+model has 11,178,564 parameters, 11,178,564 of them will be trained
+epoch  1/10  train loss 1.051 acc 0.525  |  test loss 0.999 acc 0.567
+epoch  2/10  train loss 0.567 acc 0.796  |  test loss 0.783 acc 0.717
+epoch  3/10  train loss 0.329 acc 0.898  |  test loss 0.792 acc 0.708
+epoch  4/10  train loss 0.200 acc 0.944  |  test loss 0.643 acc 0.750
+epoch  5/10  train loss 0.107 acc 0.975  |  test loss 0.687 acc 0.792
+epoch  6/10  train loss 0.050 acc 0.996  |  test loss 0.798 acc 0.692
+epoch  7/10  train loss 0.033 acc 0.994  |  test loss 0.724 acc 0.758
+epoch  8/10  train loss 0.025 acc 0.996  |  test loss 0.597 acc 0.842
+epoch  9/10  train loss 0.011 acc 1.000  |  test loss 0.775 acc 0.742
+epoch 10/10  train loss 0.007 acc 1.000  |  test loss 0.701 acc 0.775
+
+trained in 1.4 minutes
+train accuracy 100.0%
+test  accuracy 77.5%
+wrote /Users/nordin/Documents/mas1004-assignment1-nordin/results/scratch_curves.png
+wrote /Users/nordin/Documents/mas1004-assignment1-nordin/results/scratch_confusion.png
+worst_examples is not written yet (Problem 5), so there is no scratch_worst.png this time
+wrote /Users/nordin/Documents/mas1004-assignment1-nordin/results/scratch_model.pt
+
+One line for your experiment table:
+| scratch | random | all layers | 10 | 0.0001 | 11,178,564 | 100.0% | 77.5% |
+
+To put this model on your web page: python src/export_web.py --tag scratch

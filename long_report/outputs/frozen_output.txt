@@ -1,0 +1,31 @@
+reading /Users/nordin/Documents/mas1004-assignment1-nordin/data/clean
+600 images, 4 classes, read in 7 s
+  professional_basketball_game_arena 150
+  professional_ice_hockey_game_arena 150
+  professional_rugby_match_stadium 150
+  professional_soccer_match_stadium 150
+training on 480, testing on 120
+model has 11,178,564 parameters, 2,052 of them will be trained
+epoch  1/10  train loss 1.283 acc 0.406  |  test loss 1.072 acc 0.575
+epoch  2/10  train loss 0.901 acc 0.725  |  test loss 0.777 acc 0.808
+epoch  3/10  train loss 0.710 acc 0.794  |  test loss 0.672 acc 0.825
+epoch  4/10  train loss 0.614 acc 0.819  |  test loss 0.635 acc 0.792
+epoch  5/10  train loss 0.546 acc 0.838  |  test loss 0.590 acc 0.808
+epoch  6/10  train loss 0.488 acc 0.848  |  test loss 0.544 acc 0.842
+epoch  7/10  train loss 0.454 acc 0.873  |  test loss 0.522 acc 0.833
+epoch  8/10  train loss 0.424 acc 0.869  |  test loss 0.527 acc 0.850
+epoch  9/10  train loss 0.422 acc 0.863  |  test loss 0.506 acc 0.858
+epoch 10/10  train loss 0.391 acc 0.898  |  test loss 0.486 acc 0.850
+
+trained in 0.4 minutes
+train accuracy 92.3%
+test  accuracy 85.0%
+wrote /Users/nordin/Documents/mas1004-assignment1-nordin/results/frozen_curves.png
+wrote /Users/nordin/Documents/mas1004-assignment1-nordin/results/frozen_confusion.png
+worst_examples is not written yet (Problem 5), so there is no frozen_worst.png this time
+wrote /Users/nordin/Documents/mas1004-assignment1-nordin/results/frozen_model.pt
+
+One line for your experiment table:
+| frozen | ImageNet | last layer | 10 | 0.001 | 2,052 | 92.3% | 85.0% |
+
+To put this model on your web page: python src/export_web.py --tag frozen

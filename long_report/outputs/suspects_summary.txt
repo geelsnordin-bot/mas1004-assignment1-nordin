@@ -1,0 +1,9 @@
+From results/cleaning/suspects_before_cleaning/suspects.csv (clean.py suspects, run before any removal)
+near-copy pairs listed: 46
+pairs where at least one of the two is now removed: 46
+
+first 20 suspects per class, and how many of them are now removed:
+  professional_basketball_game_arena    4 of 20
+  professional_ice_hockey_game_arena    7 of 20
+  professional_rugby_match_stadium      9 of 20
+  professional_soccer_match_stadium     5 of 20

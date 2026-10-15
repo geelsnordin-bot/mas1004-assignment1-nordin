@@ -1,0 +1,17 @@
+class                    downloaded  removed   kept  other
+professional_basketball_game_arena        150       26    124      0
+professional_ice_hockey_game_arena        150       11    139      0
+professional_rugby_match_stadium        150       12    138      0
+professional_soccer_match_stadium        150       20    130      0
+
+reasons
+    26  near copy of another image
+    25  playing area covers less than 25% of the image
+     5  stadium photographed from the outside, playing area not visible
+     5  not one of the four chosen sports
+     4  only crowd or stands, no playing area
+     2  playing area covers less than 25% of the image (close-up of players)
+     1  arena photographed from the outside, playing area not visible
+     1  not a real playing area (arcade game)
+
+"other" is images that are in data/raw but neither in data/clean nor removed with `clean.py remove`, for example ones you deleted by hand. Their reasons are not recorded.

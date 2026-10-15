@@ -1,0 +1,31 @@
+reading /Users/nordin/Documents/mas1004-assignment1-nordin/data/clean
+600 images, 4 classes, read in 7 s
+  professional_basketball_game_arena 150
+  professional_ice_hockey_game_arena 150
+  professional_rugby_match_stadium 150
+  professional_soccer_match_stadium 150
+training on 480, testing on 120
+model has 11,178,564 parameters, 11,178,564 of them will be trained
+epoch  1/10  train loss 0.842 acc 0.675  |  test loss 0.532 acc 0.825
+epoch  2/10  train loss 0.167 acc 0.963  |  test loss 0.364 acc 0.875
+epoch  3/10  train loss 0.046 acc 1.000  |  test loss 0.355 acc 0.883
+epoch  4/10  train loss 0.022 acc 1.000  |  test loss 0.322 acc 0.900
+epoch  5/10  train loss 0.013 acc 1.000  |  test loss 0.335 acc 0.883
+epoch  6/10  train loss 0.011 acc 1.000  |  test loss 0.345 acc 0.892
+epoch  7/10  train loss 0.012 acc 1.000  |  test loss 0.392 acc 0.875
+epoch  8/10  train loss 0.005 acc 1.000  |  test loss 0.348 acc 0.883
+epoch  9/10  train loss 0.006 acc 1.000  |  test loss 0.351 acc 0.900
+epoch 10/10  train loss 0.004 acc 1.000  |  test loss 0.355 acc 0.892
+
+trained in 1.5 minutes
+train accuracy 100.0%
+test  accuracy 89.2%
+wrote /Users/nordin/Documents/mas1004-assignment1-nordin/results/run_curves.png
+wrote /Users/nordin/Documents/mas1004-assignment1-nordin/results/run_confusion.png
+worst_examples is not written yet (Problem 5), so there is no run_worst.png this time
+wrote /Users/nordin/Documents/mas1004-assignment1-nordin/results/run_model.pt
+
+One line for your experiment table:
+| run | ImageNet | all layers | 10 | 0.0001 | 11,178,564 | 100.0% | 89.2% |
+
+To put this model on your web page: python src/export_web.py --tag run

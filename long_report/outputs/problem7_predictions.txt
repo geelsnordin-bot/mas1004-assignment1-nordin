@@ -1,0 +1,81 @@
+Test 1, floor colour
+  new_images/professional_basketball_game_arena/IMG_9695.jpg             ice hockey 99%, basketball 0%
+  changed/basketball_brown_floor/IMG_9695.jpg                            ice hockey 86%, basketball 11%
+  new_images/professional_basketball_game_arena/IMG_9691.jpg             ice hockey 62%, basketball 36%
+  changed/basketball_brown_floor/IMG_9691.jpg                            basketball 74%, ice hockey 25%
+  clean/professional_basketball_game_arena/0143.jpg                      ice hockey 96%, rugby 2%
+  changed/basketball_brown_floor/0143.jpg                                ice hockey 44%, basketball 34%
+  clean/professional_basketball_game_arena/0062.jpg                      ice hockey 83%, basketball 11%
+  changed/basketball_brown_floor/0062.jpg                                basketball 77%, ice hockey 19%
+  clean/professional_basketball_game_arena/0064.jpg                      soccer 54%, basketball 41%
+  changed/basketball_brown_floor/0064.jpg                                basketball 100%, soccer 0%
+  new_images/professional_ice_hockey_game_arena/IMG_9697.jpg             basketball 91%, ice hockey 8%
+  changed/ice_hockey_white_ice/IMG_9697.jpg                              ice hockey 69%, basketball 30%
+
+Test 2, darker surroundings
+  changed/basketball_brown_floor_dark_surroundings/IMG_9695.jpg          ice hockey 85%, basketball 10%
+  changed/basketball_brown_floor_dark_surroundings/0143.jpg              basketball 80%, soccer 10%
+
+Test 3, black surroundings
+  changed/basketball_brown_floor_black_surroundings/IMG_9695.jpg         ice hockey 50%, rugby 20%
+  changed/basketball_brown_floor_black_surroundings/IMG_9695_with_basket.jpg ice hockey 44%, basketball 29%
+
+Test 4, ball and players added
+  changed/basketball_brown_floor_ball/IMG_9695.jpg                       ice hockey 86%, basketball 11%
+  changed/basketball_brown_floor_players/IMG_9695.jpg                    basketball 58%, ice hockey 40%
+  changed/basketball_brown_floor_ball_players/IMG_9695.jpg               basketball 51%, ice hockey 46%
+
+Test 5, players removed
+  clean/professional_basketball_game_arena/0002.jpg                      basketball 100%, rugby 0%
+  changed/basketball_players_removed/0002.jpg                            basketball 96%, ice hockey 2%
+  clean/professional_basketball_game_arena/0090.jpg                      basketball 100%, ice hockey 0%
+  changed/basketball_players_removed/0090.jpg                            basketball 92%, soccer 5%
+  clean/professional_basketball_game_arena/0101.jpg                      basketball 100%, rugby 0%
+  changed/basketball_players_removed/0101.jpg                            basketball 100%, soccer 0%
+
+Test 6, rugby posts and soccer/rugby
+  clean/professional_rugby_match_stadium/0008.jpg                        soccer 100%, rugby 0%
+  changed/zoom_field_only/0008_rugby.jpg                                 soccer 99%, rugby 1%
+  changed/zoom_field_only/0008_rugby_posts_centred.jpg                   soccer 95%, rugby 5%
+  changed/zoom_field_only/0008_rugby_posts_close.jpg                     rugby 99%, soccer 1%
+  clean/professional_soccer_match_stadium/0107.jpg                       rugby 77%, soccer 19%
+  changed/zoom_field_only/0107_soccer.jpg                                soccer 98%, basketball 1%
+  clean/professional_soccer_match_stadium/0137.jpg                       rugby 51%, soccer 36%
+  changed/soccer_players_removed/0137.jpg                                rugby 42%, soccer 33%
+
+Test 6b, soccer goal replaced by rugby posts
+  clean/professional_soccer_match_stadium/0002.jpg                       soccer 100%, rugby 0%
+  changed/soccer_goal_to_rugby_posts/0002.jpg                            soccer 100%, rugby 0%
+  changed/soccer_goal_to_rugby_posts_zoomed/0002.jpg                     rugby 89%, soccer 10%
+  clean/professional_soccer_match_stadium/0018.jpg                       soccer 100%, basketball 0%
+  changed/soccer_goal_to_rugby_posts/0018.jpg                            soccer 100%, rugby 0%
+  changed/soccer_goal_to_rugby_posts_zoomed/0018.jpg                     soccer 52%, rugby 47%
+  clean/professional_soccer_match_stadium/0055.jpg                       soccer 100%, rugby 0%
+  changed/soccer_goal_to_rugby_posts/0055.jpg                            soccer 100%, rugby 0%
+  changed/soccer_goal_to_rugby_posts_zoomed/0055.jpg                     rugby 72%, soccer 26%
+
+Test 7, more stands added
+  changed/soccer_more_crowd/0137.jpg                                     soccer 82%, rugby 13%
+
+Test 7b, rugby player group removed
+  clean/professional_rugby_match_stadium/0012.jpg                        rugby 71%, soccer 28%
+  changed/rugby_player_group_removed/0012.jpg                            rugby 84%, soccer 15%
+  clean/professional_rugby_match_stadium/0028.jpg                        rugby 100%, soccer 0%
+  changed/rugby_player_group_removed/0028.jpg                            rugby 70%, soccer 29%
+  clean/professional_rugby_match_stadium/0059.jpg                        rugby 94%, basketball 5%
+  changed/rugby_player_group_removed/0059.jpg                            rugby 86%, basketball 10%
+
+Test 7b (misunderstood first version), stands added to rugby
+  clean/professional_rugby_match_stadium/0063.jpg                        rugby 100%, soccer 0%
+  changed/rugby_more_crowd_misunderstood_7b/0012.jpg                     rugby 68%, soccer 31%
+  changed/rugby_more_crowd_misunderstood_7b/0028.jpg                     rugby 99%, basketball 1%
+  changed/rugby_more_crowd_misunderstood_7b/0063.jpg                     rugby 100%, soccer 0%
+
+Test 8, soccer stands removed
+  clean/professional_soccer_match_stadium/0115.jpg                       soccer 100%, rugby 0%
+  changed/soccer_no_stands/0115.jpg                                      soccer 87%, rugby 11%
+  clean/professional_soccer_match_stadium/0060.jpg                       soccer 98%, rugby 2%
+  changed/soccer_no_stands/0060.jpg                                      soccer 68%, rugby 31%
+  clean/professional_soccer_match_stadium/0092.jpg                       soccer 100%, rugby 0%
+  changed/soccer_no_stands/0092.jpg                                      soccer 78%, rugby 21%
+

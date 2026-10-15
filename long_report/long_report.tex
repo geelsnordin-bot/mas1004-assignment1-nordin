@@ -17,8 +17,8 @@
 \usepackage{mas1004}
 
 \reporttitle{Assignment 1: Long report}
-\studentname{Your name}
-\studentid{Your student ID}
+\studentname{Nordin Geels}
+\studentid{G20260447}
 
 \begin{document}
 \makeheader
@@ -27,23 +27,55 @@
 \section*{Problem 1. Categories and images}
 
 \subsection*{Why these categories}
-\fillin{Why these categories, and why you care about them.}
+My classifier tells apart four sports by a photo of the match and its playing
+area: professional soccer, rugby, ice hockey and basketball (pitch, pitch, rink
+and court). I chose them because each one means something to me: I play rugby
+myself and played at the World Cup with my team, I go to every PSV Eindhoven home
+game, I saw ice hockey live in America, and I grew up with basketball. I chose
+professional matches only.
+
+None of the four is an ImageNet category: \texttt{imagenet\_classes.txt} has no
+field, pitch, rink, court or stadium at all. It does have the balls (soccer ball,
+rugby ball, basketball and others), which could be a shortcut when a ball is
+large in the picture.
+
+The search phrases became the folder names, so the classes are called
+\texttt{professional\_soccer\_match\_stadium},
+\texttt{professional\_rugby\_match\_stadium},
+\texttt{professional\_ice\_hockey\_game\_arena} and
+\texttt{professional\_basketball\_game\_arena}. The classes are the four sports,
+recognised by their playing area; the names come from the search phrases.
 
 \subsection*{What I expected the model to use}
-\fillin{What you thought, before training, the model would use to tell them
-apart: shape, colour, texture, background, or something else.}
+From my notes of 7 October, written before training: mostly the colour, and the
+difference in how you score points: rugby has long poles, soccer has a goal net
+that is quite big compared to ice hockey, and basketball has the basket.
 
 \subsection*{Images per category}
-\fillin{How many images you got for each category.}
+The downloader kept 150 images per category (the \texttt{downloaded} column below,
+from \texttt{clean.py count}); the other columns are explained in Problem 4.
+
+\outputfile{outputs/clean_count.txt}
 
 % ---------------------------------------------------------------------------
 \section*{Problem 2. Preparing an image}
 
-\sidebyside{figures/prepare_original.jpg}{\fillin{the image as downloaded}}
-           {figures/prepare_result.png}{\fillin{what prepare\_image made of it}}
+\sidebyside{figures/prepare_original.jpg}{one of my own photos (IMG\_9681, soccer), 1078 x 727 pixels}
+           {figures/prepare_result.png}{what prepare\_image made of it (224 x 224, shown with the colour scaling undone)}
 
-\fillin{What was cut off, and an image where the crop cut off part of the
-thing you care about.}
+The photo is wider than it is tall, so prepare\_image first makes the shorter side
+256 pixels and then keeps only the 224 x 224 square in the middle. Everything
+outside that square is gone: on the left part of the group of players at the
+corner of the box, on the right the people walking along the side of the pitch,
+and a thin strip at the top and bottom.
+
+\sidebyside{figures/crop_cut_IMG_9691.jpg}{IMG\_9691 (basketball, 1290 x 1600): the yellow square is what prepare\_image keeps}
+           {figures/crop_cut_IMG_9691_result.png}{what prepare\_image made of it}
+
+In this tall phone photo the crop cuts off the bottom of the basketball court,
+the thing I care about, while the big screen hanging from the roof stays almost
+completely in. So the model sees more scoreboard than court. This is one of the
+photos the model got wrong (Problem 5).
 
 % ---------------------------------------------------------------------------
 \section*{Problem 3. First training runs}
@@ -53,110 +85,623 @@ thing you care about.}
 \toprule
 tag & start & trained & epochs & lr & trainable parameters & train acc. & test acc. \\
 \midrule
-\multicolumn{8}{l}{\fillin{one row per run, as run.py printed it}} \\
+run & ImageNet & all layers & 10 & 0.0001 & 11,178,564 & 100.0\% & 89.2\% \\
+scratch & random & all layers & 10 & 0.0001 & 11,178,564 & 100.0\% & 77.5\% \\
+frozen & ImageNet & last layer & 10 & 0.001 & 2,052 & 92.3\% & 85.0\% \\
+lr\_small & ImageNet & all layers & 10 & 1e-05 & 11,178,564 & 98.5\% & 80.0\% \\
 \bottomrule
 \end{tabular}
 \end{center}
 
+The fourth setting is my own choice: a smaller learning rate (\texttt{--lr 1e-5},
+tag \texttt{lr\_small}), because I expected it to give the most accurate model.
+
 \picturefile{figures/run_curves.png}
 
-\fillin{Did the loss go down? Did it keep going down, or flatten out?}
+The loss went down. The train loss dropped from 0.842 in epoch 1 to 0.046 in
+epoch 3 and kept creeping down to 0.004 in epoch 10. The test loss went down
+from 0.532 to its lowest point, 0.322, in epoch 4, and then flattened out and
+went up a little (0.355 in epoch 10). The train accuracy reached 1.000 in
+epoch 3.
 
-\fillin{The gap between train and test accuracy, and what it means.}
+The train accuracy is 100.0\% and the test accuracy 89.2\%. The model got every
+training image right, but not every test image: it has learned the training
+images by heart, which works less well on images it has never seen.
+That gap is the difference between remembering and generalising.
 
 \begin{center}\picturefile[0.5\linewidth]{figures/run_confusion.png}\end{center}
 
-\fillin{Which two categories it mixes up most, and whether that surprised you.}
+The model mixes up rugby and soccer most: 8 rugby test images were called soccer.
+That did not surprise me. Rugby and soccer are both played on grass, so when the
+lines and the goal posts are not prominent in the picture, I already expected the
+model to have trouble with them. Ice hockey and basketball did not surprise me
+either when they got mixed up later: professional ice hockey and basketball arenas
+have a similar layout, especially in America with the big screens in the middle,
+and both have a light-coloured floor.
 
-\fillin{How far apart the test accuracies are, starting from ImageNet and from
-random numbers, and why you think that is.}
+Starting from ImageNet gave 89.2\% on the test set, starting from random numbers
+77.5\%, with the same images, code and number of epochs. I think the ImageNet
+start is better because the network already knows how to see edges, shapes,
+grass, crowds and lights from 1.2 million photos, while from random numbers it
+has to learn all of that from only 480 training images. Both reached 100.0\%
+on the training images, so the scratch model also learned the training images by
+heart, but what it learned works less well on new images.
 
-\fillin{How close training only the last layer gets to training all of them.}
+Training only the last layer (2,052 of the 11,178,564 parameters) reached 85.0\%
+on the test set, close to the 89.2\% of training all layers, and it trained in 0.4
+minutes instead of 1.5 minutes (see the outputs below). Most of the work is done by what the
+network already learned on ImageNet.
+
+My own setting, the smaller learning rate, did worse: 80.0\% on the test set.
+Its test accuracy was still rising at epoch 10 (from 0.408 in epoch 1 to 0.800
+in epoch 10, see its output below), so with such small steps 10 epochs were not
+enough to finish learning. The first run with the normal learning rate was done
+after 3 to 4 epochs.
+
+\begin{center}
+\picturefile[0.32\linewidth]{figures/scratch_curves.png}\hfill
+\picturefile[0.32\linewidth]{figures/frozen_curves.png}\hfill
+\picturefile[0.32\linewidth]{figures/lr_small_curves.png}\\
+\small scratch \hfill frozen \hfill lr\_small
+\end{center}
 
 \subsection*{Output of the runs}
 \outputfile{outputs/run_output.txt}
 \outputfile{outputs/scratch_output.txt}
 \outputfile{outputs/frozen_output.txt}
-% One more line like these for the setting you chose, named by its tag.
-\fillin{the output of the run with your own setting}
+\outputfile{outputs/lr_small_output.txt}
 
 % ---------------------------------------------------------------------------
 \section*{Problem 4. Cleaning}
 
 \subsection*{My rule}
-\fillin{Your rule, in one or two sentences, as you wrote it before you
-started.}
+An image belongs in a category only if it shows the playing area of that sport
+(pitch, rink or court) and the playing area covers at least 25\% of the image.
+Remove: (1) images of only the crowd or only the stands, without the playing
+area; (2) stadiums or arenas photographed from the outside, because then you
+cannot see the playing area, and a rugby stadium could just as well be a soccer
+stadium; (3) images of any sport other than the four chosen (soccer, rugby, ice
+hockey, basketball), for example American football.
+
+Added later, during Step 14, after looking at the model's most confident
+mistakes: (4) images that do not show a real playing area, for example an arcade
+basketball machine. I decided to keep blurry images and images with watermarks.
 
 \subsection*{Three kinds of junk}
-\fillin{Three kinds of junk, with one picture of each.}
-
-% For example: \picturefile[0.3\linewidth]{figures/junk_1.jpg}
+\begin{center}
+\picturefile[0.32\linewidth]{figures/junk_closeup_soccer_0057.jpg}\hfill
+\picturefile[0.32\linewidth]{figures/junk_crowd_soccer_0072.jpg}\hfill
+\picturefile[0.32\linewidth]{figures/junk_wrongsport_rugby_0061.jpg}
+\end{center}
+Left: soccer 0057, a close-up of two players with hardly any pitch (less than
+25\% playing area; it is also a stock image with a watermark across it). Middle:
+soccer 0072, fans in the stands, with the pitch only far away behind them (only
+crowd or stands). Right: rugby 0061, an Australian rules football oval, not one
+of my four sports.
 
 \subsection*{What I removed}
 \outputfile{outputs/clean_count.txt}
 
-\fillin{How many near copies it found, and what you did with them.}
+\outputfile{outputs/suspects_summary.txt}
 
-\fillin{Of the first 20 suspects in each class, how many you removed. Whether
-the suspects included junk you had missed, and whether you found junk it did
-not list.}
+The suspect list (run before I removed anything) listed 46 pairs of near copies.
+From every pair one image is now removed: most with the reason
+\textit{near copy of another image}, some because I had already removed one of
+the two for another reason. In basketball there was a group of very similar
+iStock photos; I kept four of them that are different moments from the same photo
+shoot (same arena, same angle, same watermark), because the tool did not call
+them copies of each other. Running \texttt{clean.py suspects} again after cleaning
+found no near copies at all.
+
+Of the first 20 suspects in each class I removed 4 (basketball), 7 (ice hockey),
+9 (rugby) and 5 (soccer). Many suspects were fine pictures that were just
+unusual, so I kept them.
+The suspects did include junk I had missed when I looked through the images
+myself, and I also found junk myself that the tool did not list. Looking myself
+and using the suspect list both found things the other missed.
+
+Two more images were removed later, at Step 14, after I saw them among the
+model's most confident mistakes: basketball 0131 (a close-up of players, under
+the 25\% rule) and basketball 0116 (an arcade basketball machine, rule 4). Both
+were in the test set. Removing test images because the model got them wrong would
+make the test score look better without the model improving, so I removed them
+only because they break my rule.
 
 \subsection*{Before and after cleaning}
 \outputfile{outputs/compare.txt}
 
-\fillin{The test accuracy and the accuracy on your new images, before and
-after. If a number went down, why you think it did.}
+\begin{center}
+\picturefile[0.49\linewidth]{figures/clean_curves.png}\hfill
+\picturefile[0.4\linewidth]{figures/clean_confusion.png}
+\end{center}
+
+Before cleaning (\texttt{run}) the test accuracy was 89.2\% and the accuracy on my
+new images 71.4\% (15/21). After cleaning (\texttt{clean}, same settings) it was
+88.8\% and 81.0\% (17/21). The test accuracy went down a little, but cleaning
+changed the test set itself: it is a different, smaller set of images without
+the junk, so the two test numbers are not a fair comparison. My 21 new images are
+exactly the same before and after, so that comparison is the fair one, and there
+the model got two more images right.
+
+The scores also move from run to run with the same data and settings. I trained
+\texttt{clean} three times, and \texttt{run.py} and \texttt{check.py} printed:
+89.7\% test and 85.7\% (18/21) new images the first time, 88.8\% and 81.0\%
+(17/21) the second time (a re-run for Step 14), and 88.8\% and 81.0\% (17/21)
+the third time (after 0116 and 0131 were also removed). Each run overwrote the
+output files of the one before, so the files here are from the third run. The
+score moves because training has random parts that the seed does not fix (the new
+last layer starts from random numbers, and the training images are shuffled into
+a new order every epoch), because the Apple Silicon GPU does not calculate in
+exactly the same order every time, and because the test sets are small, so one
+image more or less changes the percentage noticeably. In all three runs the clean
+model got more of my new images right (18 or 17) than the model before cleaning
+(15). I did not keep training until a higher number came out.
 
 % ---------------------------------------------------------------------------
 \section*{Problem 5. Images from a new source}
 
-\fillin{Where your new images came from, and why you are sure none of them are
-among your downloads.}
+My 21 new images are my own photos and screenshots from my phone: the rugby
+images are frames from my own rugby team's drone footage and the stream of our
+match when we played at the World Cup, and photos from a rugby match I went to;
+the basketball and ice hockey images are from games I went to in America; and the
+soccer images are from my own phone gallery, for example from PSV home games.
+None of them can be among my downloads: I took them or made the screenshots
+myself, so they are not pictures the image search returned, and the overlap check
+finds no near copies (closest 0.87; near copies are above 0.95). One rugby image
+(IMG\_9678) is a screenshot of a stream of our own match, with ``PAUSED'' and a
+broadcaster logo in it.
 
 \outputfile{outputs/overlap.txt}
 
-\fillin{The accuracy on your downloaded test set and on your new images, side
-by side.}
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+model & downloaded test set & my new images \\
+\midrule
+run (before cleaning) & 89.2\% & 71.4\% (15/21) \\
+clean (after cleaning) & 88.8\% & 81.0\% (17/21) \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\fillin{Five mistakes it was confident about, with the pictures. For each one,
-what in the image you think pushed it the wrong way.}
+\picturefile{figures/own_photos_all.png}
 
-\fillin{What is different about your new images: background, lighting, angle,
-distance, what else is in the frame.}
+All 5 rugby and all 6 soccer photos were right. The model got 4 of 5 ice hockey
+photos and only 2 of 5 basketball photos right. On my new images it made only
+four mistakes, shown below; as a fifth I add its most confident mistake on the
+downloaded test set.
+
+\picturefile{figures/own_photos_mistakes.png}
+
+\begin{itemize}
+\item IMG\_9695, basketball, called ice hockey (99\%): the floor is very pale,
+almost white, like ice, and the whole hall is white.
+\item IMG\_9697, ice hockey, called basketball (91\%): the ice is coloured dark red
+by a light projection, so it no longer looks like white ice.
+\item IMG\_9691, basketball, called ice hockey (62\%): a pale floor, and a big screen
+hanging from the roof like in ice hockey arenas; the crop also cuts off the
+bottom of the court (Problem 2).
+\item IMG\_9694, basketball, called rugby (37\%): I am not sure, but maybe because
+the photo has no crowd or stands, which in my analysis pushes the model towards
+rugby, and the floor has a different colour from the darker, browner tones of
+other basketball courts. The model itself was also unsure (rugby 37\%).
+\item Rugby 0008 (downloaded test set), called soccer (100\%): a huge stadium full
+of fans, with the rugby posts small in the picture.
+\end{itemize}
+
+What is different about my new images: they are phone photos taken from where I
+sat or stood, often in portrait format, so the crop cuts off the top and bottom.
+The lighting is real (arena lights, a red light show, night outside) instead of
+the polished stock and AI-generated pictures that make up much of the downloads.
+Some of my photos show a small hall or an outdoor court, while the downloads are
+mostly big professional stadiums seen from above. Some are screenshots of a stream
+or drone footage.
 
 % ---------------------------------------------------------------------------
 \section*{Problem 6. The demo}
 
-Address: \fillin{your GitHub Pages address}
+Address: \url{https://geelsnordin-bot.github.io/mas1004-assignment1-nordin/}
 
-\fillin{What happens when you show it something that is none of your
-categories.}
+The page shows the clean model; its self-test badge is green (the browser agrees
+with Python, largest gap 0.0000), and it works on my phone over mobile data.
+
+When I showed it a photo of food (rice with chicken), it still chose one of my
+sports: soccer 79.1\%, rugby 15.2\%, ice hockey 4.3\%, basketball 1.4\%. It always
+has to pick one of the four categories; it cannot say that a picture is none of
+them.
 
 % ---------------------------------------------------------------------------
 \section*{Problem 7. What the model looks at}
 
-% Copy this subsection once for every guess.
-\subsection*{Guess 1}
+I made every guess and chose every change myself; the agent only made the
+changes I asked for. I asked in Dutch, so each request is given word for word in
+Dutch, with an English translation. All model answers below are from the clean
+model (the one on the demo page) and are printed together at the end of this
+section. Every changed image is a copy saved in \texttt{data/changed/}; the
+originals were never changed.
 
-\fillin{The guess, and what in your images or your model's mistakes made you
-think of it.}
+% --------------------------------------------------------------------------
+\subsection*{Guess 1: the brightness of the floor}
 
-\fillin{The change you chose, and why it tests the guess.}
+\textbf{Guess.} I think the model uses the brightness of the floor: a pale or
+white floor means ice hockey, a darker floor means basketball.
 
-My request to the agent, word for word:
+\textbf{Why.} IMG\_9695 (basketball, very pale floor) was called ice hockey with
+99\%, and IMG\_9691 (basketball, pale floor) was called ice hockey, while IMG\_9693
+and IMG\_9696, with a much darker floor, were recognised as basketball. And the
+other way round: IMG\_9697, an ice hockey rink coloured dark red by a light
+projection, was called basketball with 91\%.
+
+\textbf{Change.} Recolour only the floor: pale basketball floors become a
+brownish wood colour, and the red ice becomes plain white ice. If the guess is
+right, the answers should flip. I also added three basketball test images that
+the model called ice hockey or soccer (0143 with a grey floor, 0062 with a light
+wooden floor, and 0064 with a green court).
+
+My requests to the agent, word for word:
 \begin{quote}
-\fillin{the request}
+``Oké laten we dan kleur veranderen van de ice hockey foto zonder die lampen en
+dus gewoon wit ijs en de basketbal velden een bruinigere kleur te geven de vloer
+in plaats van zo bleek''\\
+(Okay, then let's change the colour of the ice hockey photo without those lights,
+so just white ice, and give the basketball courts a browner floor instead of so
+pale.)
+
+``Ja voeg die 2 ook maar toe aan de test plus 0064 en in plaats van dat groen dus
+ook bruin maken''\\
+(Yes, add those 2 to the test as well, plus 0064, and make that green brown too.)
 \end{quote}
 
-% One \sidebyside for every image you changed.
-\sidebyside{figures/guess1_original_1.jpg}{\fillin{original: the model's answer}}
-           {figures/guess1_changed_1.jpg}{\fillin{changed: the model's answer}}
+The floor was selected by an outline or by its colour and recoloured, keeping its
+brightness pattern so the court lines stay visible; everything else is unchanged.
 
-\fillin{What the results say about the guess.}
+\sidebyside{figures/p7/new_images__professional_basketball_game_arena__IMG_9695.jpg}{IMG\_9695 (basketball), original: ice hockey 99\%, basketball 0\%}
+           {figures/p7/changed__basketball_brown_floor__IMG_9695.jpg}{brown floor: ice hockey 86\%, basketball 11\%}
+\sidebyside{figures/p7/new_images__professional_basketball_game_arena__IMG_9691.jpg}{IMG\_9691 (basketball), original: ice hockey 62\%, basketball 36\%}
+           {figures/p7/changed__basketball_brown_floor__IMG_9691.jpg}{brown floor: basketball 74\%, ice hockey 25\%}
+\sidebyside{figures/p7/clean__professional_basketball_game_arena__0143.jpg}{0143 (basketball), original: ice hockey 96\%, rugby 2\%}
+           {figures/p7/changed__basketball_brown_floor__0143.jpg}{brown floor: ice hockey 44\%, basketball 34\%}
+\sidebyside{figures/p7/clean__professional_basketball_game_arena__0062.jpg}{0062 (basketball), original: ice hockey 83\%, basketball 11\%}
+           {figures/p7/changed__basketball_brown_floor__0062.jpg}{brown floor: basketball 77\%, ice hockey 19\%}
+\sidebyside{figures/p7/clean__professional_basketball_game_arena__0064.jpg}{0064 (basketball), original: soccer 54\%, basketball 41\%}
+           {figures/p7/changed__basketball_brown_floor__0064.jpg}{green parts brown: basketball 100\%, soccer 0\%}
+\sidebyside{figures/p7/new_images__professional_ice_hockey_game_arena__IMG_9697.jpg}{IMG\_9697 (ice hockey), original: basketball 91\%, ice hockey 8\%}
+           {figures/p7/changed__ice_hockey_white_ice__IMG_9697.jpg}{plain white ice: ice hockey 69\%, basketball 30\%}
 
+\textbf{What it says.} Four of the six images flipped to the right sport, 0143
+nearly did, and IMG\_9695 stayed ice hockey but became less sure. In IMG\_9697 the
+white ice also removed the players and the projected logo, so more than the colour
+changed there. My conclusion: the colour of the playing surface has a lot of
+influence on the model.
+
+% --------------------------------------------------------------------------
+\subsection*{Guess 2: the brightness of the surroundings}
+
+\textbf{Guess.} I think the model also uses how bright the surroundings are: a
+very light place (a white hall, or outside under a light blue sky) makes it think
+of ice hockey.
+
+\textbf{Why.} IMG\_9695 (white hall) and 0143 (outside, light sky) were still
+called ice hockey after their floor was made brown in guess 1.
+
+\textbf{Change.} Starting from the brown-floor versions, make everything except
+the floor darker and browner (test 2). Then, for IMG\_9695, make everything except
+the floor black (test 3).
+
+My requests to the agent, word for word:
+\begin{quote}
+``Op de bruine omgeving de setting donkerder maken met bijvoorbeeld tribunes met
+met veel mensen die wat donkerder/bruiner zijn getint dan witte muren bijvoorbeeld
+ik denk dat dit veel gaat helpen met de gok omdat dan het hoge wit gehalte weg is
+uit de foto''\\
+(On the brown version, make the setting darker, for example with stands full of
+people that are tinted darker/browner than white walls; I think this will help a
+lot because then the high amount of white is gone from the photo.)
+
+``Conclusie is dat het helpt kan je het nog is testen door die witte muren gewoon
+zwart te maken zodat er alleen gefocust wordt op het sport veld wat dus al bruiner
+is?''\\
+(The conclusion is that it helps. Can you test it again by simply making those
+white walls black, so that only the sports floor, which is already browner, is
+focused on?)
+
+``[...] maar je hebt nu ook de basket er uit gedaan dat is niet de bedoeling
+[...]''\\
+([...] but you have now also taken out the basket, that was not the intention
+[...])
+\end{quote}
+
+In test 2 the surroundings were made darker and browner by a colour tint; no
+people or stands were added. In test 3 the agent first also blacked out the basket,
+which I had not asked for, so it was done again with the basket kept.
+
+\sidebyside{figures/p7/changed__basketball_brown_floor__IMG_9695.jpg}{IMG\_9695, brown floor: ice hockey 86\%, basketball 11\%}
+           {figures/p7/changed__basketball_brown_floor_dark_surroundings__IMG_9695.jpg}{+ dark surroundings: ice hockey 85\%, basketball 10\%}
+\sidebyside{figures/p7/changed__basketball_brown_floor__0143.jpg}{0143, brown floor: ice hockey 44\%, basketball 34\%}
+           {figures/p7/changed__basketball_brown_floor_dark_surroundings__0143.jpg}{+ dark surroundings: basketball 80\%, soccer 10\%}
+\sidebyside{figures/p7/changed__basketball_brown_floor__IMG_9695.jpg}{IMG\_9695, brown floor: ice hockey 86\%, basketball 11\%}
+           {figures/p7/changed__basketball_brown_floor_black_surroundings__IMG_9695.jpg}{black, basket also removed: ice hockey 50\%, rugby 20\%}
+\sidebyside{figures/p7/changed__basketball_brown_floor__IMG_9695.jpg}{IMG\_9695, brown floor: ice hockey 86\%, basketball 11\%}
+           {figures/p7/changed__basketball_brown_floor_black_surroundings__IMG_9695_with_basket.jpg}{black, basket kept: ice hockey 44\%, basketball 29\%}
+
+\textbf{What it says.} Darkening the surroundings helps: 0143 flipped to
+basketball. But IMG\_9695 barely changed, and even with only the floor (and the
+basket) left it stayed ice hockey, though much less sure. My conclusion: it does
+not really have to do with the white walls.
+
+% --------------------------------------------------------------------------
+\subsection*{Guess 3: an empty court}
+
+\textbf{Guess.} The court in IMG\_9695 looks empty, while almost all other
+basketball photos look full, because a basketball court is small compared to the
+fields of the other sports. Adding a ball and players might make the model say
+basketball.
+
+\textbf{Change.} On the brown-floor version of IMG\_9695, first add a ball, then
+players (test 4). Then the other way round: remove the players from basketball
+test images that the model got right (test 5).
+
+My requests to the agent, word for word:
+\begin{quote}
+``[...] plus was misschien helpt is door een basketbal toe toevoegen op het veld
+met wat spelers? Het veld is nu namelijk erg leeg terwijl bijna alle andere
+foto’s met basketbal best vol lijken door het kleine veldje dat het is als je het
+vergelijkt met de andere sporten''\\
+([...] and what might help is adding a basketball on the court with some players?
+The court is very empty now, while almost all other basketball photos look quite
+full because of how small the court is compared with the other sports.)
+
+``Test A en dan B''\\
+(Test A and then B: first the ball, then the players.)
+
+``Dat spelers op een veld dus kunnen helpen om het goed te herkennen we kunnen
+misschien van een goed gegokte spelers weghalen om te kijken wat er dan gebeurt
+met de score?''\\
+(So players on a court can help to recognise it correctly. Maybe we can remove the
+players from a correctly guessed one, to see what happens to the score?)
+
+``Ja doe maar met testset en kies welke het minst nep lijkt of het model verkeerd
+beïnvloed''\\
+(Yes, use the test set, and choose the ones that look least fake or influence the
+model wrongly the least.)
+\end{quote}
+
+The ball is drawn. The players were cut out of basketball image 0020 (a near copy
+removed from the training data, so not a test image) as rectangles with soft
+edges, so they also bring a bit of dark crowd and yellow floor from that photo.
+For test 5 the agent chose 0002, 0090 and 0101, and painted the players out with
+the colours to their left and right (crowd stays crowd, floor stays floor), which
+leaves visible smears; the ball, referees and spectators stayed.
+
+\sidebyside{figures/p7/changed__basketball_brown_floor__IMG_9695.jpg}{IMG\_9695, brown floor: ice hockey 86\%, basketball 11\%}
+           {figures/p7/changed__basketball_brown_floor_ball__IMG_9695.jpg}{+ ball: ice hockey 86\%, basketball 11\%}
+\sidebyside{figures/p7/changed__basketball_brown_floor__IMG_9695.jpg}{IMG\_9695, brown floor: ice hockey 86\%, basketball 11\%}
+           {figures/p7/changed__basketball_brown_floor_players__IMG_9695.jpg}{+ players: basketball 58\%, ice hockey 40\%}
+\sidebyside{figures/p7/changed__basketball_brown_floor__IMG_9695.jpg}{IMG\_9695, brown floor: ice hockey 86\%, basketball 11\%}
+           {figures/p7/changed__basketball_brown_floor_ball_players__IMG_9695.jpg}{+ ball and players: basketball 51\%, ice hockey 46\%}
+\sidebyside{figures/p7/clean__professional_basketball_game_arena__0002.jpg}{0002 (basketball), original: basketball 100\%, rugby 0\%}
+           {figures/p7/changed__basketball_players_removed__0002.jpg}{players removed: basketball 96\%, ice hockey 2\%}
+\sidebyside{figures/p7/clean__professional_basketball_game_arena__0090.jpg}{0090 (basketball), original: basketball 100\%, ice hockey 0\%}
+           {figures/p7/changed__basketball_players_removed__0090.jpg}{players removed: basketball 92\%, soccer 5\%}
+\sidebyside{figures/p7/clean__professional_basketball_game_arena__0101.jpg}{0101 (basketball), original: basketball 100\%, rugby 0\%}
+           {figures/p7/changed__basketball_players_removed__0101.jpg}{players removed: basketball 100\%, soccer 0\%}
+
+\textbf{What it says.} The ball did nothing, but with players added IMG\_9695 was
+called basketball for the first time. My conclusion for test 4: players on a court
+can help the model recognise it correctly. Removing players barely changed the
+answer (all three stayed basketball). My conclusion for test 5: maybe adding
+players is easier and disturbs the photo less than removing them; players that are
+removed always stay somewhat visible in the photo.
+
+% --------------------------------------------------------------------------
+\subsection*{Guess 4: the rugby posts}
+
+\textbf{Guess.} I think the model recognises rugby by the tall H-shaped posts:
+when the posts are clearly visible it says rugby, and when they are small or not
+prominent it says soccer.
+
+\textbf{Why.} I compared the soccer and rugby mistakes with test images it got
+right. In the correctly recognised rugby photos you clearly see the posts or
+players close together. In the rugby photos it called soccer, like 0008, the posts
+are not prominent. And soccer 0107 was called rugby, where tall thin poles above
+the stadium look like posts.
+
+\begin{center}\picturefile{figures/soccer_rugby_compare.png}\end{center}
+
+\textbf{Change.} Zoom in on only the field in 0008 (posts should become more
+prominent, so I expected rugby) and in 0107 (without the poles above the stadium,
+so hopefully soccer). Then test it on more images: replace the goal in soccer
+photos the model got right with rugby posts (test 6b).
+
+My requests to the agent, word for word:
+\begin{quote}
+``Oké test met 0008 de palen door het in te zoomen op alleen het veld en test dat
+ook bij 0107 alleen het veld want die dingen boven het stadion laten het lijken als
+palen dus alleen op veld in zoomen en dan hopelijk gokt het soccer [...]''\\
+(Okay, test the posts with 0008 by zooming in on only the field, and test that also
+with 0107, only the field, because the things above the stadium make it look like
+posts; so only zoom in on the field, and then hopefully it guesses soccer [...])
+
+``Oké zoom verder in zodat je niet de tribune ziet en alleen het veld met de
+palen''\\
+(Okay, zoom in further so that you do not see the stands, only the field with the
+posts.)
+
+``Test 6 zoek een paar voetbal foto’s en voeg in plaats van het goal daar palen
+toe. [...]''\\
+(Test 6: find a few soccer photos and add posts there instead of the goal. [...])
+
+``[...] Plus bij die rugby palen foto moet er wel alleen op het veld ingezoomd
+worden aangezien veel publiek al snel een hoge voetbal score geeft''\\
+([...] And for the rugby posts photos you have to zoom in on only the field,
+because a lot of crowd quickly gives a high soccer score.)
+\end{quote}
+
+The first zoom of 0008 was wide, and the model only sees the middle square, where
+the posts were at the edge, so a square crop with the posts in the middle was made
+as well (I asked for that too: ``0008 opnieuw met palen in het midden'', 0008 again
+with the posts in the middle), and then the close-up. Because the posts stand in front of the
+stands, the close-up still shows some stands at the top. In test 6b the goal was
+covered with the grass next to it and white H-shaped posts, about five times as
+tall as the goal, were drawn in its place; in 0018 part of a second goal stayed
+visible.
+
+\sidebyside{figures/p7/clean__professional_rugby_match_stadium__0008.jpg}{0008 (rugby), original: soccer 100\%, rugby 0\%}
+           {figures/p7/changed__zoom_field_only__0008_rugby.jpg}{zoomed in on the field: soccer 99\%, rugby 1\%}
+\sidebyside{figures/p7/clean__professional_rugby_match_stadium__0008.jpg}{0008 (rugby), original: soccer 100\%, rugby 0\%}
+           {figures/p7/changed__zoom_field_only__0008_rugby_posts_centred.jpg}{square, posts in the middle: soccer 95\%, rugby 5\%}
+\sidebyside{figures/p7/clean__professional_rugby_match_stadium__0008.jpg}{0008 (rugby), original: soccer 100\%, rugby 0\%}
+           {figures/p7/changed__zoom_field_only__0008_rugby_posts_close.jpg}{close-up of posts and field: rugby 99\%, soccer 1\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0107.jpg}{0107 (soccer), original: rugby 77\%, soccer 19\%}
+           {figures/p7/changed__zoom_field_only__0107_soccer.jpg}{zoomed in on the field: soccer 98\%, basketball 1\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0002.jpg}{0002 (soccer), original: soccer 100\%, rugby 0\%}
+           {figures/p7/changed__soccer_goal_to_rugby_posts__0002.jpg}{goal replaced by rugby posts: soccer 100\%, rugby 0\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0002.jpg}{0002 (soccer), original: soccer 100\%, rugby 0\%}
+           {figures/p7/changed__soccer_goal_to_rugby_posts_zoomed__0002.jpg}{posts, zoomed in on the field: rugby 89\%, soccer 10\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0018.jpg}{0018 (soccer), original: soccer 100\%, basketball 0\%}
+           {figures/p7/changed__soccer_goal_to_rugby_posts__0018.jpg}{goal replaced by rugby posts: soccer 100\%, rugby 0\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0018.jpg}{0018 (soccer), original: soccer 100\%, basketball 0\%}
+           {figures/p7/changed__soccer_goal_to_rugby_posts_zoomed__0018.jpg}{posts, zoomed in on the field: soccer 52\%, rugby 47\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0055.jpg}{0055 (soccer), original: soccer 100\%, rugby 0\%}
+           {figures/p7/changed__soccer_goal_to_rugby_posts__0055.jpg}{goal replaced by rugby posts: soccer 100\%, rugby 0\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0055.jpg}{0055 (soccer), original: soccer 100\%, rugby 0\%}
+           {figures/p7/changed__soccer_goal_to_rugby_posts_zoomed__0055.jpg}{posts, zoomed in on the field: rugby 72\%, soccer 26\%}
+
+\textbf{What it says.} Without the poles above the stadium, 0107 became soccer.
+For 0008 the answer only changed to rugby in the close-up where the posts were big.
+In the soccer photos the drawn posts did nothing in the whole stadium view, where
+they are only thin lines, but after zooming in on the field two of the three
+became rugby and the third (0018, with the most stands behind the posts) nearly
+did. Zooming in changes two things at once: the posts get bigger and the crowd gets
+smaller. My conclusion: posts that are prominent in the picture influence the
+rugby score, while crowd and stands can push towards a higher soccer score; this
+shows in 6b, where the zoomed photo with the most crowd behind the prominent posts
+(0018) has the lowest rugby score.
+
+% --------------------------------------------------------------------------
+\subsection*{Guess 5: players close together}
+
+\textbf{Guess.} I think the model recognises rugby by players standing close
+together in a group, like a lineout or a scrum.
+
+\textbf{Why.} The same comparison as guess 4: in the rugby photos it got right you
+often see players close together. And soccer 0137, with players spread out, was
+called rugby.
+
+\textbf{Change.} Remove the players from 0137, and remove only the group of players
+standing close together from rugby test images the model got right (test 7b).
+
+My requests to the agent, word for word:
+\begin{quote}
+``[...] en test de spelers dicht bij elkaar met 0137 door de spelers weg te
+laten''\\
+([...] and test the players close together with 0137 by leaving the players out.)
+
+``[...] Test 7 doe dit bij andere rugby velden had namelijk bij de test geen invloed
+[...]''\\
+([...] Test 7: do this with other rugby fields, because in the test it had no
+influence [...])
+
+``Je hebt 7 b niet goed gedaan er zijn tribunes toegevoegd?????''\\
+(You did 7b wrong, stands were added?????)
+\end{quote}
+
+The agent first misread ``test 7'' as the crowd test and added stands to rugby
+photos (shown under guess 6); after my correction it removed the player groups:
+the group in 0012, the scrum in 0028 and the lineout in 0059. Other players and
+the referee stayed. The painted area leaves visible smears, very clearly in 0059.
+I expected little effect.
+
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0137.jpg}{0137 (soccer), original: rugby 51\%, soccer 36\%}
+           {figures/p7/changed__soccer_players_removed__0137.jpg}{players removed: rugby 42\%, soccer 33\%}
+\sidebyside{figures/p7/clean__professional_rugby_match_stadium__0012.jpg}{0012 (rugby), original: rugby 71\%, soccer 28\%}
+           {figures/p7/changed__rugby_player_group_removed__0012.jpg}{player group removed: rugby 84\%, soccer 15\%}
+\sidebyside{figures/p7/clean__professional_rugby_match_stadium__0028.jpg}{0028 (rugby), original: rugby 100\%, soccer 0\%}
+           {figures/p7/changed__rugby_player_group_removed__0028.jpg}{player group removed: rugby 70\%, soccer 29\%}
+\sidebyside{figures/p7/clean__professional_rugby_match_stadium__0059.jpg}{0059 (rugby), original: rugby 94\%, basketball 5\%}
+           {figures/p7/changed__rugby_player_group_removed__0059.jpg}{player group removed: rugby 86\%, basketball 10\%}
+
+\textbf{What it says.} All of them stayed with the answer they had (0137 stayed
+rugby, the three rugby photos stayed rugby, 0028 less sure). My conclusion:
+removing the players standing close together does not necessarily make the model
+think it is another sport.
+
+% --------------------------------------------------------------------------
+\subsection*{Guess 6: the amount of crowd}
+
+\textbf{Guess.} A lot of crowd in the picture makes the model say soccer, little
+crowd makes it say rugby.
+
+\textbf{Why.} My rugby photos hardly show a crowd, while the soccer photos show a
+lot, and the close-up of 0008, with less crowd, became rugby.
+
+\textbf{Change.} Add more stands with crowd to 0137 (test 7), and remove the stands
+and crowd from soccer photos the model got right (test 8).
+
+My requests to the agent, word for word:
+\begin{quote}
+``Bij 0137 dan meer tribune/ publiek toevoegen''\\
+(For 0137, add more stands/crowd.)
+
+``[...] en test 8 haal bij voetbal foto’s de tribunes weg en geen publiek''\\
+([...] and test 8: remove the stands from soccer photos, and no crowd.)
+\end{quote}
+
+For 0137 the stands at the top of the photo itself were repeated above it until the
+picture was square. This looks repetitive, and because the picture became square
+the model now sees the full width of the pitch, so two things changed at once. For
+test 8 each soccer photo was cropped to the pitch only; in 0060 a little of the
+stands is still visible.
+
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0137.jpg}{0137 (soccer), original: rugby 51\%, soccer 36\%}
+           {figures/p7/changed__soccer_more_crowd__0137.jpg}{more stands added on top: soccer 82\%, rugby 13\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0115.jpg}{0115 (soccer), original: soccer 100\%, rugby 0\%}
+           {figures/p7/changed__soccer_no_stands__0115.jpg}{only the pitch, no stands: soccer 87\%, rugby 11\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0060.jpg}{0060 (soccer), original: soccer 98\%, rugby 2\%}
+           {figures/p7/changed__soccer_no_stands__0060.jpg}{only the pitch, no stands: soccer 68\%, rugby 31\%}
+\sidebyside{figures/p7/clean__professional_soccer_match_stadium__0092.jpg}{0092 (soccer), original: soccer 100\%, rugby 0\%}
+           {figures/p7/changed__soccer_no_stands__0092.jpg}{only the pitch, no stands: soccer 78\%, rugby 21\%}
+
+When the agent misunderstood test 7b, it added stands with crowd to three rugby
+photos in the same way. I did not ask for this, but the answers are useful for this
+guess: all three stayed rugby (originals: 0012 rugby 71\%, 0028 rugby 100\%, 0063
+rugby 100\%, see the outputs at the end of this section).
+
+\sidebyside{figures/p7/clean__professional_rugby_match_stadium__0012.jpg}{0012 (rugby), original: rugby 71\%, soccer 28\%}
+           {figures/p7/changed__rugby_more_crowd_misunderstood_7b__0012.jpg}{stands with crowd added: rugby 68\%, soccer 31\%}
+\sidebyside{figures/p7/clean__professional_rugby_match_stadium__0028.jpg}{0028 (rugby), original: rugby 100\%, soccer 0\%}
+           {figures/p7/changed__rugby_more_crowd_misunderstood_7b__0028.jpg}{stands with crowd added: rugby 99\%, basketball 1\%}
+\sidebyside{figures/p7/clean__professional_rugby_match_stadium__0063.jpg}{0063 (rugby), original: rugby 100\%, soccer 0\%}
+           {figures/p7/changed__rugby_more_crowd_misunderstood_7b__0063.jpg}{stands with crowd added: rugby 100\%, soccer 0\%}
+
+\textbf{What it says.} With more stands, 0137 became soccer (one image, with two
+changes at once). Removing the stands from soccer photos kept them soccer but made
+the model less sure, moving them towards rugby. Adding stands to rugby photos did
+not make them soccer. My conclusion: clearly visible posts lead to a higher rugby
+score, while a lot of crowd and stands pushes the answer towards soccer.
+
+% --------------------------------------------------------------------------
+\subsection*{The model's answers for every image in this section}
+\outputfile{outputs/problem7_predictions.txt}
+
+% --------------------------------------------------------------------------
 \subsection*{What I now think the model uses}
-\fillin{What you now think the model uses to tell your categories apart, and
-how sure you are.}
+My tests suggest that the model relies heavily on the setting of a sport rather
+than on the ball. Changing the colour of the playing surface was enough in most
+images to shift the predictions towards basketball and ice hockey. For rugby,
+prominent goal posts combined with few stands or spectators made the biggest
+difference. Football worked the other way around: removing the stands around a
+green grass pitch made the model less sure about football and moved it towards
+rugby. Together, these results indicate that the classifier has mainly learned to
+recognise the environment in which each sport is usually played, and that these
+background cues can outweigh the action in the image itself.
+
+I am fairly confident in this conclusion. The effects of the floor colour and the
+goal posts (when they were prominent in the picture) showed up consistently across
+several different images, which makes it unlikely that they were one-off results.
+At the same time, some of my tests used only one to three images, so the evidence
+for those specific changes is limited. A larger set of edited images would be
+needed to confirm them.
 
 % ---------------------------------------------------------------------------
 \section*{Appendix. Output of check.py}

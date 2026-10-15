@@ -1,0 +1,52 @@
+MAS1004 Assignment 1, checking your work
+
+Training images  (/Users/nordin/Documents/mas1004-assignment1-nordin/data/clean)
+--------------------------------------------------------------------------------
+  professional_basketball_game_arena   124 images
+  professional_ice_hockey_game_arena   139 images
+  professional_rugby_match_stadium   138 images
+  professional_soccer_match_stadium   130 images
+
+Your images from a new source  (/Users/nordin/Documents/mas1004-assignment1-nordin/data/new_images)
+---------------------------------------------------------------------------------------------------
+  professional_basketball_game_arena     5 images
+  professional_ice_hockey_game_arena     5 images
+  professional_rugby_match_stadium     5 images
+  professional_soccer_match_stadium     6 images
+
+The same image appearing twice
+------------------------------
+  ok       no file appears twice byte for byte. Near copies (the same picture resized or re-saved) are only found by `python src/clean.py suspects` and `python src/clean.py overlap`.
+
+The model you exported for the web page
+---------------------------------------
+  ok       4 classes: professional_basketball_game_arena, professional_ice_hockey_game_arena, professional_rugby_match_stadium, professional_soccer_match_stadium
+  ok       model.onnx is 44.8 MB, 11,178,564 parameters
+           input [1, 3, 224, 224], prepared as: shorter side 256, centre 224 x 224, mean [0.485, 0.456, 0.406], std [0.229, 0.224, 0.225]
+
+Does the exported model give the answers Python gave?
+-----------------------------------------------------
+  ok       yes, they agree (largest gap 0.0000)
+
+Your images from a new source  (/Users/nordin/Documents/mas1004-assignment1-nordin/data/new_images)
+---------------------------------------------------------------------------------------------------
+
+  accuracy on your new images: 17/21 = 81.0%
+
+  rows are what it really is, columns are what the model said
+                                         professi professi professi professi
+    professional_basketball_game_arena          2        2        1        0
+    professional_ice_hockey_game_arena          1        4        0        0
+    professional_rugby_match_stadium            0        0        5        0
+    professional_soccer_match_stadium           0        0        0        6
+
+  the mistakes it was most sure about:
+    IMG_9695.jpg                 said professional_ice_hockey_game_arena (99%), really professional_basketball_game_arena
+    IMG_9697.jpg                 said professional_basketball_game_arena (91%), really professional_ice_hockey_game_arena
+    IMG_9691.jpg                 said professional_ice_hockey_game_arena (62%), really professional_basketball_game_arena
+    IMG_9694.jpg                 said professional_rugby_match_stadium (37%), really professional_basketball_game_arena
+
+Summary
+-------
+  nothing is broken
+
